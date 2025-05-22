@@ -1,0 +1,258 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Phishing Analysis Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .section-title {
+            border-bottom: 2px solid #1a99ff;
+        }
+        .code-block {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        .alert {
+            background-color: #fed7d7;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <header class="bg-white shadow rounded-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Steam Phishing Analysis Report</h1>
+            <p class="text-gray-600 mt-2">Analysis of Malicious JavaScript Files Targeting Steam Credentials and Sessions</p>
+            <p class="text-gray-500 text-sm">Generated on May 22, 2025, 07:53 PM BST</p>
+        </header>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Executive Summary</h2>
+            <p class="text-gray-700 mt-4">
+                This report analyzes two obfuscated JavaScript files delivered via HTTP responses, forming a sophisticated phishing campaign targeting Steam users’ credentials and sessions. The first file (File 1) is a React-based login interface mimicking Steam’s login page, supporting multi-factor authentication (MFA) prompts and QR code login. The second file (File 2) creates a browser-like popup or overlay to display the login interface, enhancing its deceptive appearance. Together, these files capture usernames, passwords, MFA codes, and session cookies, bypassing MFA through code interception and session hijacking. The heavy obfuscation, dynamic endpoints, and realistic UI make the scheme difficult to detect, posing significant risks of account takeover and financial loss.
+            </p>
+            <div class="alert mt-4">
+                <p class="text-red-800 font-semibold">Warning: The analyzed code exhibits strong indicators of malicious intent, including phishing and session theft. Users should avoid interacting with suspicious login pages, and Steam should enhance session security.</p>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">File 1: React-Based Login Interface</h2>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Overview</h3>
+            <p class="text-gray-700 mt-2">
+                File 1 is a minified React application served with secure HTTP headers, rendering a login interface that closely resembles Steam’s official login page. It includes fields for username and password, a “Remember Me” checkbox, and a QR code for mobile login. The interface dynamically handles MFA prompts (email, mobile app, SMS) and polls for device confirmations.
+            </p>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Key Components</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Login Interface</strong>: Built with React, using components like <code>Ho</code> (main app) and <code>gi</code> (login form).</li>
+                <li><strong>Authentication Context</strong>: Managed via <code>Vt</code>, handling login requests (<code>doLogin</code>), MFA code submission (<code>submitCode</code>), and confirmation polling (<code>checkConfirmations</code>).</li>
+                <li><strong>API Communication</strong>: Sends requests to obfuscated endpoints (e.g., <code>/steam/doLogin</code>) using the <code>_0x1b6152</code> function, which XOR-encodes URLs with <code>localStorage.secret</code>.</li>
+                <li><strong>Internationalization</strong>: Uses i18next to support multiple languages (e.g., English, Russian) with dynamic translation loading.</li>
+                <li><strong>QR Code</strong>: Displays a QR code linking to <code>https://store.steampowered.com/login/?14__global-header</code>, which may be legitimate or spoofed.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Phishing Mechanisms</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Credential Capture</strong>: Collects username and password via the login form, sent to the attacker’s server.</li>
+                <li><strong>MFA Interception</strong>: Prompts for email, SMS, or mobile app codes, which are submitted to <code>/steam/submitCode</code> and intercepted.</li>
+                <li><strong>Device Confirmation Polling</strong>: Polls <code>/steam/checkConfirmations</code> every 5 seconds to detect mobile app approval, allowing session hijacking.</li>
+                <li><strong>Session Hijacking</strong>: Redirects to a server-controlled URL upon successful login, capturing session cookies in response headers.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Obfuscation</h3>
+            <p class="text-gray-700 mt-2">
+                The code is minified, and API endpoints are encoded using <code>_0x1b6152</code>, which XORs URLs with a secret stored in <code>localStorage.secret</code>. This obscures the attacker’s server and complicates static analysis.
+            </p>
+            <div class="code-block mt-4">
+                <pre>function _0x1b6152(_0x178b35, _0x5e3581) {
+    let _0x4bdb6e = '', _0xa82466 = _0x178b35.startsWith('/');
+    _0xa82466 && (_0x178b35 = _0x178b35.slice(1));
+    let _0x348c4d = _0x178b35.lastIndexOf('.'), _0x3cbb2b = '';
+    _0x348c4d !== -1 && (_0x3cbb2b = _0x178b35.slice(_0x348c4d), _0x178b35 = _0x178b35.slice(0, _0x348c4d));
+    _0x178b35 = 'DyNaM1c' + encodeURIComponent(_0x178b35);
+    for (let _0x3bc31e = 0; _0x3bc31e < _0x178b35.length; _0x3bc31e++) {
+        let _0x2a8cb8 = _0x178b35.charCodeAt(_0x3bc31e), _0x531d14 = _0x5e3581.charCodeAt(_0x3bc31e % _0x5e3581.length),
+            _0xac8cfe = _0x2a8cb8 ^ _0x531d14;
+        _0x4bdb6e += _0xac8cfe.toString(16).padStart(2, '0');
+    }
+    _0x4bdb6e += _0x3cbb2b;
+    return _0xa82466 ? '/' + _0x4bdb6e : _0x4bdb6e;
+}</pre>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">File 2: Browser-Like Popup System</h2>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Overview</h3>
+            <p class="text-gray-700 mt-2">
+                File 2 is an obfuscated JavaScript file that creates a browser-like popup or overlay to display the login interface from File 1. It supports multiple window types (e.g., <code>FakeWindow</code>, <code>AboutBlank</code>) and uses drag-and-drop functionality to enhance realism.
+            </p>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Key Components</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Popup Creation</strong>: Implements <code>FakeWindow</code> mode, rendering a draggable <code>&lt;div&gt;</code> with a title bar, lock icon, URL bar, and iframe.</li>
+                <li><strong>Drag-and-Drop</strong>: Uses <code>Draggabilly</code>, built on <code>Unidragger</code>, for mouse, touch, and pointer event handling.</li>
+                <li><strong>API Communication</strong>: Fetches configuration from <code>/getSiteConfig</code> and tracks visits via <code>/pageVisit</code>, using <code>_0x1b6152</code> for URL encoding.</li>
+                <li><strong>Event Handling</strong>: Intercepts link clicks and sends <code>postMessage</code> events with <code>auth</code> to the parent window.</li>
+                <li><strong>Styling</strong>: Injects CSS for a browser-like UI, including dark mode and Firefox-specific styles, with a custom font (<code>Support Assets</code>).</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Phishing Mechanisms</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Convincing UI</strong>: The popup mimics a browser window with a lock icon, URL bar, and buttons, increasing trust.</li>
+                <li><strong>Link Hijacking</strong>: Intercepts clicks on specific links (e.g., <code>.showAuthWin</code>), triggering the popup and preventing navigation.</li>
+                <li><strong>Session Tracking</strong>: Tracks user interactions via <code>/pageVisit</code> to monitor engagement or detect bots.</li>
+                <li><strong>Data Exfiltration</strong>: Uses <code>postMessage</code> to send interaction data to the parent window or attacker’s server.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Obfuscation</h3>
+            <p class="text-gray-700 mt-2">
+                File 2 employs string obfuscation (via <code>_0x4dac</code> and <code>_0x48b5</code>), numeric obfuscation, and an IIFE structure. Dynamic property access (e.g., <code>Object.defineProperty</code>) further hides functionality.
+            </p>
+            <div class="code-block mt-4">
+                <pre>function _0x48b5(_0x175de5, _0xe2d06d) {
+    const _0x4dace9 = _0x4dac();
+    return _0x48b5 = function(_0x48b527, _0x3b4c1e) {
+        _0x48b527 = _0x48b527 - 0x1a2;
+        let _0x57bd21 = _0x4dace9[_0x48b527];
+        return _0x57bd21;
+    }, _0x48b5(_0x175de5, _0xe2d06d);
+}</pre>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Phishing Scheme Mechanics</h2>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Step-by-Step Process</h3>
+            <ol class="list-decimal list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Initial Load</strong>: File 2 loads on a malicious or compromised website, fetching configuration from <code>/getSiteConfig</code> and decoding a <code>secret</code> cookie.</li>
+                <li><strong>Popup Trigger</strong>: File 2 triggers a popup (e.g., <code>FakeWindow</code>) on link clicks or <code>auth</code> messages, loading File 1’s login interface in an iframe.</li>
+                <li><strong>Credential Entry</strong>: File 1 collects username and password, sent to <code>/steam/doLogin</code>.</li>
+                <li><strong>MFA Handling</strong>: File 1 prompts for MFA codes (email, SMS, mobile app) or polls for device confirmation, intercepting codes via <code>/steam/submitCode</code>.</li>
+                <li><strong>Session Hijacking</strong>: File 1 redirects to a server-controlled URL, capturing session cookies for persistent access.</li>
+                <li><strong>Exfiltration</strong>: File 2 sends interaction data via <code>postMessage</code> or tracks visits with <code>/pageVisit</code>.</li>
+            </ol>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Overcoming MFA</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Code Interception</strong>: Captures email, SMS, or mobile app codes, allowing the attacker to complete authentication.</li>
+                <li><strong>Device Confirmation</strong>: Polls for mobile app approval, hijacking the session once approved.</li>
+                <li><strong>QR Code Exploitation</strong>: The QR code may initiate a session hijacking flow or redirect to a malicious URL.</li>
+                <li><strong>Session Cookies</strong>: Captures cookies post-login, bypassing MFA for subsequent access.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">User Deception</h3>
+            <p class="text-gray-700 mt-2">
+                The realistic UI, complete with Steam’s logo, internationalization, and browser-like styling, convinces users of legitimacy. Dynamic error handling and MFA prompts align with Steam’s login flow, reducing suspicion.
+            </p>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Security Implications</h2>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Credential Theft</strong>: Captures usernames, passwords, and MFA codes, enabling full account access.</li>
+                <li><strong>Session Hijacking</strong>: Steals session cookies, allowing persistent access without MFA.</li>
+                <li><strong>Financial Loss</strong>: Enables unauthorized purchases, item trading, or account sales.</li>
+                <li><strong>XSS Risks</strong>: File 2’s unsandboxed iframe could execute malicious scripts.</li>
+                <li><strong>Evasion</strong>: Obfuscation and dynamic endpoints evade antivirus and static analysis.</li>
+            </ul>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Recommendations</h2>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">For Users</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li>Verify URLs before entering credentials (e.g., ensure <code>steampowered.com</code>).</li>
+                <li>Avoid scanning QR codes from untrusted sources.</li>
+                <li>Use browser extensions (e.g., uBlock Origin) to block malicious scripts.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">For Steam</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li>Implement stricter session validation (e.g., invalidate sessions on IP changes).</li>
+                <li>Require re-authentication for sensitive actions (e.g., payment changes).</li>
+                <li>Educate users about phishing risks and URL verification.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">For Developers (If Legitimate)</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li>Remove obfuscation for transparency.</li>
+                <li>Add iframe sandboxing (e.g., <code>sandbox="allow-scripts allow-same-origin"</code>).</li>
+                <li>Validate <code>secret</code> cookies server-side.</li>
+                <li>Use Content Security Policy (CSP) to restrict script sources.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">For Security Teams</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li>Analyze <code>/getSiteConfig</code>, <code>/steam/*</code>, and <code>/pageVisit</code> endpoints.</li>
+                <li>Monitor <code>postMessage</code> events for data exfiltration.</li>
+                <li>Report to Steam and Cloudflare for takedown.</li>
+            </ul>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Conclusion</h2>
+            <p class="text-gray-700 mt-4">
+                The analyzed JavaScript files form a sophisticated phishing campaign targeting Steam users, capturing credentials, MFA codes, and session cookies. File 1’s React-based login interface and File 2’s browser-like popup create a convincing environment, bypassing MFA through code interception and session hijacking. The heavy obfuscation and dynamic endpoints evade detection, posing risks of account takeover and financial loss. Immediate action is needed to educate users, enhance Steam’s security, and dismantle the attacker’s infrastructure.
+            </p>
+        </section>
+
+        <footer class="bg-white shadow rounded-lg p-6 text-center">
+            <p class="text-gray-600">Generated by Grok 3, built by xAI</p>
+            <p class="text-gray-500 text-sm">For further analysis or inquiries, contact xAI support.</p>
+        </footer>
+    </div>
+</body>
+</html>

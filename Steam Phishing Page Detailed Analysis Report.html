@@ -1,0 +1,349 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Phishing Page Detailed Analysis Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            max-width: 900px;
+        }
+        .section-title {
+            border-bottom: 2px solid #1a99ff;
+        }
+        .code-block {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .alert {
+            background-color: #fed7d7;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
+        .subsection {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f7fafc;
+            border-radius: 0.5rem;
+        }
+        .list-item {
+            margin-bottom: 0.75rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <header class="bg-white shadow rounded-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Steam Phishing Page Detailed Analysis Report</h1>
+            <p class="text-gray-600 mt-2">Comprehensive Analysis of HTTP Response and HTML Document in Phishing Attack</p>
+            <p class="text-gray-500 text-sm">Generated on May 22, 2025, 08:29 PM BST</p>
+        </header>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Executive Summary</h2>
+            <p class="text-gray-700 mt-4">
+                This report provides an in-depth analysis of an HTTP response and HTML document from a phishing page titled “Steam Gift Activation,” designed to steal Steam users’ credentials and multi-factor authentication (MFA) codes. The page is a critical component of a sophisticated phishing scheme, integrating with two previously analyzed JavaScript files: File 1 (React-based login interface) and File 2 (browser-like popup system). It mimics Steam’s official website using Valve’s branding, a fake “Spring Gift Marathon” promotion, and legitimate-looking assets to deceive users. The HTTP response leverages Cloudflare and Caddy for anonymity, while the HTML introduces vulnerabilities such as unsandboxed iframes, redundant script loading, and potential XSS risks. The page’s extensive use of <code>showAuthWin</code> triggers ensures persistent phishing attempts, posing significant risks of account takeover and financial loss. Immediate action is required to block the site, educate users, and investigate the attacker’s infrastructure.
+            </p>
+            <div class="alert mt-4">
+                <p class="text-red-800 font-semibold">Warning: This phishing page is highly deceptive, exploiting Steam’s branding and psychological tactics to steal sensitive data. Users must verify URLs and avoid untrusted login prompts.</p>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">HTTP Response Analysis</h2>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Overview</h3>
+                <p class="text-gray-700 mt-2">
+                    The HTTP response delivers the phishing page’s HTML document, served through Cloudflare’s CDN with a Caddy reverse proxy. The response includes secure headers to appear legitimate and a <code>201 Created</code> status, suggesting dynamic content generation or server-side tracking.
+                </p>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Detailed Header Breakdown</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item"><strong>Status</strong>: <code>HTTP/2 201 Created</code> - Anomalous for a static HTML page, indicating server-side processing, possibly for session creation or user tracking.</li>
+                    <li class="list-item"><strong>Date</strong>: <code>Thu, 22 May 2025 18:09:20 GMT</code> - Response timestamp.</li>
+                    <li class="list-item"><strong>Content-Type</strong>: <code>text/html; charset=utf-8</code> - UTF-8 encoded HTML document, supporting multilingual content.</li>
+                    <li class="list-item"><strong>Security Headers</strong>:
+                        <ul class="list-disc list-inside ml-4 mt-1">
+                            <li><code>Cross-Origin-Opener-Policy: same-origin</code> - Restricts cross-origin window access.</li>
+                            <li><code>Cross-Origin-Resource-Policy: same-origin</code> - Limits resource access to the same origin.</li>
+                            <li><code>Strict-Transport-Security: max-age=15552000; includeSubDomains</code> - Enforces HTTPS for 180 days.</li>
+                            <li><code>X-Content-Type-Options: nosniff</code> - Prevents MIME-type sniffing.</li>
+                            <li><code>X-Frame-Options: SAMEORIGIN</code> - Blocks iframe embedding from other origins.</li>
+                            <li><code>X-Xss-Protection: 0</code> - Disables legacy XSS protection.</li>
+                            <li><code>Referrer-Policy: no-referrer</code> - Suppresses referrer data.</li>
+                        </ul>
+                    </li>
+                    <li class="list-item"><strong>Cloudflare Headers</strong>:
+                        <ul class="list-disc list-inside ml-4 mt-1">
+                            <li><code>Server: cloudflare</code> - Served via Cloudflare’s CDN.</li>
+                            <li><code>Cf-Ray: 943e43984f95946f-LHR</code> - Routed through London, UK, data center.</li>
+                            <li><code>Cf-Cache-Status: DYNAMIC</code> - Response is dynamically generated, not cached.</li>
+                            <li><code>Alt-Svc: h3=":443"; ma=86400</code> - Supports HTTP/3.</li>
+                            <li><code>Report-To</code>, <code>Nel</code> - Network Error Logging for performance monitoring.</li>
+                        </ul>
+                    </li>
+                    <li class="list-item"><strong>Other Headers</strong>:
+                        <ul class="list-disc list-inside ml-4 mt-1">
+                            <li><code>Via: 1.1 Caddy</code> - Uses Caddy reverse proxy, consistent with File 2.</li>
+                            <li><code>Origin-Agent-Cluster: ?1</code> - Enables process isolation.</li>
+                            <li><code>Vary: Accept-Encoding</code> - Supports content encoding negotiation.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Implications</h3>
+                <p class="text-gray-700 mt-2">
+                    The use of Cloudflare and Caddy obscures the server’s true location, enhancing attacker anonymity. Secure headers create a façade of legitimacy, reducing user suspicion. The <code>201 Created</code> status suggests server-side logic, potentially for tracking user sessions or generating unique page instances, aligning with File 2’s <code>/pageVisit</code> endpoint.
+                </p>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">HTML Document Analysis</h2>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Overview</h3>
+                <p class="text-gray-700 mt-2">
+                    The HTML document, titled “Steam Gift Activation,” is a phishing page mimicking Steam’s official website. It uses Valve’s branding, logos, and CSS to promote a fake “Spring Gift Marathon,” luring users to sign in. The page integrates with File 2’s popup system via <code>showAuthWin</code> triggers, loading File 1’s login interface to capture credentials and MFA codes.
+                </p>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Structure and Styling</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item"><strong>HTML Structure</strong>: A responsive page (<code>class="v6 promoannounce responsive_page"</code>) with a global header, navigation menu, main content, and footer, closely resembling Steam’s layout.</li>
+                    <li class="list-item"><strong>CSS Stylesheets</strong>: Loads 48 stylesheets, mixing obfuscated local paths (e.g., <code>../33c3b641d00426137cb389ab0ecb86a62a596a227020/...</code>) and Steam-hosted assets (e.g., <code>https://store.cloudflare.steamstatic.com/public/shared/css/...</code>). This enhances authenticity while complicating analysis.</li>
+                    <li class="list-item"><strong>Inline CSS</strong>: Defines a background image (<code>https://i.imgur.com/facOzSk.png</code>), custom scrollbar styling, responsive design for mobile, and visual effects like radial gradients (<code>#about_monitor_video_gradient</code>).</li>
+                    <li class="list-item"><strong>Meta Tags</strong>: Includes SEO and social media metadata (e.g., Twitter card, Open Graph) with a description of “Redeem a Steam Gift Card or Wallet Code,” aligning with the scam’s lure.</li>
+                </ul>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">JavaScript Integration</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item"><strong>Scripts Loaded</strong>:
+                        <ul class="list-disc list-inside ml-4 mt-1">
+                            <li>File 2: <code>/734928547c52070c57050740.js</code> implements the popup system.</li>
+                            <li>jQuery: Multiple instances (3.4.1, 1.8.3) and jQuery UI (1.11.3) from <code>cdnjs.cloudflare.com</code> and <code>code.jquery.com</code>.</li>
+                            <li>Steam Scripts: Official scripts (e.g., <code>shared_global.js</code>, <code>main.js</code>) from <code>store.cloudflare.steamstatic.com</code>.</li>
+                            <li>Legacy Libraries: Prototype (1.7), Scriptaculous with conflict preservation.</li>
+                            <li>Custom Scripts: <code>tooltip.js</code>, <code>about.js</code>, <code>slick.js</code>, <code>rellax.min.js</code> for UI effects.</li>
+                        </ul>
+                    </li>
+                    <li class="list-item"><strong>Triggers</strong>: Sets <code>window.triggers = ["a", "button"]</code> multiple times, with one reset to an empty array, configuring File 2’s link interception (<code>_0x384e4d</code>).</li>
+                    <li class="list-item"><strong>Popup Trigger</strong>: Eight <code><script type="module"></code> blocks import a <code>Window</code> class from obfuscated paths (e.g., <code>/72114c67fb4dd9988997fb8e626fe449d12720756187/...</code>), attaching click listeners to <code>showAuthWin</code> elements to call <code>window.createNew()</code>.</li>
+                    <li class="list-item"><strong>Counter Script</strong>: Displays a fake counter (<code>#bobo</code>) starting at 251,110, incrementing randomly every 2 seconds, stored in <code>localStorage</code>, to create urgency.</li>
+                </ul>
+                <div class="code-block mt-2">
+                    <pre><script type="module">
+    import Window from "/72114c67fb4dd9988997fb8e626fe449d12720756187/2053d30d68c40a00747dbd864577471cca3e42bea850.js";
+    const window = new Window();
+    Array.from(document.getElementsByClassName("showAuthWin")).forEach(
+        (showAuthWin) => {
+            showAuthWin.addEventListener("click", (event) => {
+                window.createNew();
+            });
+        }
+    );
+</script></pre>
+                </div>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Content</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item"><strong>Header</strong>: Replicates Steam’s header with a logo, navigation links (Store, Community, About, Support), and a language dropdown, all marked with <code>showAuthWin</code>.</li>
+                    <li class="list-item"><strong>Main Content</strong>: Promotes a “Spring Gift Marathon” with a gift card image (<code>wallet_card_img_english.png</code>) and a message claiming the user found a “secret page.” The counter suggests limited cards (out of 300,000).</li>
+                    <li class="list-item"><strong>Call to Action</strong>: A “SIGN IN” button (<code>btn_blue_steamui showAuthWin</code>) and platform icons (macOS, SteamOS, ChromeOS) trigger the phishing popup.</li>
+                    <li class="list-item"><strong>Footer</strong>: Mimics Steam’s footer with Valve’s logo, legal links, and social media, all <code>showAuthWin</code> to prevent navigation.</li>
+                </ul>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Phishing Mechanism</h3>
+                <p class="text-gray-700 mt-2">
+                    The page uses <code>showAuthWin</code> on nearly all interactive elements to trigger File 2’s popup, loading File 1’s login interface. The fake promotion and counter exploit urgency, while Steam’s assets enhance authenticity.
+                </p>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Integration with Phishing Flow</h2>
+            <p class="text-gray-700 mt-4">
+                The HTML page is the entry point for the phishing scheme, aligning with the previously described flow:
+            </p>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Flow Steps</h3>
+                <ol class="list-decimal list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item"><strong>User Visits Site</strong>: The page lures users with a fake gift card promotion, loading File 2 (<code>/734928547c52070c57050740.js</code>).</li>
+                    <li class="list-item"><strong>Initialization</strong>: File 2 fetches <code>/getSiteConfig</code>, decodes a <code>secret</code> cookie, and sets <code>window.config</code>.</li>
+                    <li class="list-item"><strong>Popup Trigger</strong>: Clicks on <code>showAuthWin</code> elements (e.g., “SIGN IN,” navigation links) call <code>window.createNew()</code>, triggering File 2’s popup (<code>_0x40e788</code>, <code>_0x1445e1</code>) with File 1’s login interface.</li>
+                    <li class="list-item"><strong>Credential Capture</strong>: File 1 collects username, password, and MFA codes via <code>/steam/doLogin</code> and <code>/steam/submitCode</code>.</li>
+                    <li class="list-item"><strong>Session Hijacking</strong>: File 1 redirects to a server-controlled URL, capturing session cookies.</li>
+                    <li class="list-item"><strong>Exfiltration</strong>: File 2 sends <code>postMessage</code> (<code>_0x384e4d</code>) or <code>/pageVisit</code> (<code>_0x213ee8</code>) to track and exfiltrate data.</li>
+                </ol>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Role in Attack</h3>
+                <p class="text-gray-700 mt-2">
+                    The page serves as the initial lure, using psychological tactics (urgency, rewards) and Steam’s branding to prompt user interaction. Its extensive <code>showAuthWin</code> triggers ensure persistent phishing attempts, maximizing the attack’s success rate.
+                </p>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Vulnerabilities</h2>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Remote Code Execution (RCE)</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item"><strong>Unsandboxed Iframe</strong>: File 2’s iframe lacks a <code>sandbox</code> attribute, allowing malicious <code>window.loginUrl</code> content to execute scripts, risking XSS or browser compromise.</li>
+                    <li class="list-item"><strong>Multiple jQuery Instances</strong>: Loads jQuery 3.4.1 and 1.8.3 redundantly, increasing prototype pollution risks. An attacker could manipulate <code>__proto__</code> in a vulnerable version.</li>
+                    <li class="list-item"><strong>Dynamic Script Loading</strong>: Eight <code>Window</code> imports from obfuscated paths could execute compromised code via supply chain attacks.</li>
+                    <li class="list-item"><strong>Counter Script</strong>: Uses <code>localStorage.counter</code> without sanitization. If modified to evaluate input, it could enable XSS.</li>
+                </ul>
+                <div class="code-block mt-2">
+                    <pre>let counter = 251110;
+const counterElement = document.getElementById("bobo");
+if (localStorage.getItem('counter')) {
+    counterElement.textContent = formatNumber(localStorage.getItem('counter'));
+}</pre>
+                </div>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Denial of Service (DoS)</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item"><strong>Multiple Popups</strong>: Numerous <code>showAuthWin</code> triggers could be exploited to open excessive popups, overwhelming browsers (see File 2’s <code>postMessage</code> issue).</li>
+                    <li class="list-item"><strong>Resource Load</strong>: 48 CSS files, multiple scripts, and animations (<code>slick.js</code>, <code>rellax.min.js</code>) strain low-end devices.</li>
+                    <li class="list-item"><strong>Counter Interval</strong>: <code>setInterval</code> runs every 2 seconds indefinitely, consuming minor CPU. Manipulating <code>localStorage.counter</code> could amplify resource use.</li>
+                </ul>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Server Origin IP Leakage</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item"><strong>Obfuscated Scripts</strong>: Scripts like <code>/734928547c52070c57050740.js</code> may expose the IP if not proxied correctly.</li>
+                    <li class="list-item"><strong>CORS Misconfiguration</strong>: Permissive CORS on File 2’s <code>fetch</code> requests could leak headers with the origin IP.</li>
+                    <li class="list-item"><strong>Mixed Assets</strong>: Local assets versus Steam-hosted ones (<code>store.cloudflare.steamstatic.com</code>) risk IP exposure if local paths bypass Cloudflare.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Additional Insights</h2>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Authenticity and Deception</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item">Uses Steam’s logos, CSS, and scripts from <code>store.cloudflare.steamstatic.com</code>, likely a typo-squatted domain, to appear legitimate.</li>
+                    <li class="list-item">The “Spring Gift Marathon” and counter exploit urgency and scarcity, aligning with File 1’s realistic login interface.</li>
+                </ul>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Redundant Scripts</h3>
+                <p class="text-gray-700 mt-2">
+                    Repeated jQuery, jQuery UI, and <code>Window</code> imports suggest obfuscation or debugging artifacts, increasing the attack surface for vulnerabilities.
+                </p>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Counter Manipulation</h3>
+                <p class="text-gray-700 mt-2">
+                    The counter’s <code>localStorage</code> storage allows manipulation via developer tools, but this doesn’t benefit the attacker directly, serving as a distraction.
+                </p>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">Language Targeting</h3>
+                <p class="text-gray-700 mt-2">
+                    Defaults to Russian (<code>l=russian</code>) and supports Bulgarian, aligning with File 1’s translations and suggesting an Eastern European focus, as noted in prior authorship analysis.
+                </p>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Recommendations</h2>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">For Users</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item">Verify URLs, ensuring <code>steampowered.com</code>, not <code>steamstatic.com</code>.</li>
+                    <li class="list-item">Avoid pages offering unsolicited rewards or gift cards.</li>
+                    <li class="list-item">Use browser extensions like uBlock Origin to block malicious scripts.</li>
+                    <li class="list-item">Monitor Steam accounts for unauthorized activity and enable MFA.</li>
+                </ul>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">For Steam</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item">Investigate <code>store.cloudflare.steamstatic.com</code> for typo-squatting or unauthorized use.</li>
+                    <li class="list-item">Enhance session validation to detect phishing logins (e.g., IP-based checks).</li>
+                    <li class="list-item">Educate users about fake promotions and URL verification via campaigns or alerts.</li>
+                    <li class="list-item">Collaborate with Cloudflare to identify and block malicious domains.</li>
+                </ul>
+            </div>
+            <div class="subsection">
+                <h3 class="text-xl font-semibold text-gray-700">For Security Teams</h3>
+                <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                    <li class="list-item">Analyze <code>/734928547c52070c57050740.js</code> and <code>Window</code> scripts for server endpoints and behavior.</li>
+                    <li class="list-item">Test for XSS by injecting malicious data into <code>localStorage.counter</code> or <code>showAuthWin</code> triggers.</li>
+                    <li class="list-item">Probe for IP leakage via invalid <code>secret</code> cookies or CORS requests.</li>
+                    <li class="list-item">Report to Cloudflare and Steam’s security team with details of endpoints and domains for takedown.</li>
+                    <li class="list-item">Monitor dark web markets for phishing kits referencing this scheme.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Conclusion</h2>
+            <p class="text-gray-700 mt-4">
+                The HTML page, titled “Steam Gift Activation,” is the entry point for a sophisticated Steam phishing scheme, leveraging a fake gift card promotion to deceive users. It integrates with File 2’s popup system and File 1’s login interface through extensive <code>showAuthWin</code> triggers, ensuring persistent credential capture. The page’s use of Steam’s assets, a typo-squatted domain (<code>store.cloudflare.steamstatic.com</code>), and psychological tactics (urgency via counter) enhances its deception. Vulnerabilities like unsandboxed iframes, redundant scripts, and potential XSS risks increase the attack’s danger. The HTTP response’s Cloudflare and Caddy infrastructure obscures the attacker’s origin, complicating traceback. Immediate action is needed to block the site, educate users, and investigate the attacker’s infrastructure to prevent further harm.
+            </p>
+        </section>
+
+        <footer class="bg-white shadow rounded-lg p-6 text-center">
+            <p class="text-gray-600">Generated by Grok 3, built by xAI</p>
+            <p class="text-gray-500 text-sm">For further analysis or inquiries, contact xAI support.</p>
+        </footer>
+    </div>
+</body>
+</html>

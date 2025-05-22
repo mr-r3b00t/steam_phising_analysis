@@ -1,0 +1,205 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Phishing Authorship and Origin Analysis Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .section-title {
+            border-bottom: 2px solid #1a99ff;
+        }
+        .code-block {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        .alert {
+            background-color: #fed7d7;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <header class="bg-white shadow rounded-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Steam Phishing Authorship and Origin Analysis Report</h1>
+            <p class="text-gray-600 mt-2">Investigation into the Authorship and Country of Origin of Malicious JavaScript Files</p>
+            <p class="text-gray-500 text-sm">Generated on May 22, 2025, 08:01 PM BST</p>
+        </header>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Executive Summary</h2>
+            <p class="text-gray-700 mt-4">
+                This report analyzes two obfuscated JavaScript files used in a phishing campaign targeting Steam users’ credentials and sessions, focusing on indicators of authorship and country of origin. The files’ heavy obfuscation, lack of explicit metadata, and use of Cloudflare hosting obscure direct attribution. However, linguistic clues (Russian and Bulgarian translations), technical sophistication, and alignment with Eastern European cybercrime patterns suggest a skilled cybercriminal or group, likely from Russia or Bulgaria. Global origins are possible due to generic components and global targeting. Further investigation into server endpoints and font metadata is recommended to refine attribution.
+            </p>
+            <div class="alert mt-4">
+                <p class="text-red-800 font-semibold">Note: The absence of explicit signatures and use of Cloudflare limit precise attribution. Eastern Europe is the most likely origin, but global developers cannot be ruled out.</p>
+            </div>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Indicators of Authorship</h2>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Code Characteristics</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Obfuscation</strong>: Advanced techniques (string encoding via <code>_0x4dac</code>, <code>_0x48b5</code>, XOR-based URL encoding with <code>_0x1b6152</code>) suggest a skilled developer using tools like JavaScript Obfuscator.</li>
+                <li><strong>Libraries</strong>: File 1 uses React, i18next, and <code>qrcode.react</code>; File 2 includes custom <code>Draggabilly</code> and <code>Unidragger</code>. These are widely used, offering no specific author clues.</li>
+                <li><strong>Coding Style</strong>: Minified code with generic variable names (e.g., <code>_0x175de5</code>) and no comments, typical of malicious scripts to avoid traceability.</li>
+            </ul>
+            <div class="code-block mt-4">
+                <pre>function _0x48b5(_0x175de5, _0xe2d06d) {
+    const _0x4dace9 = _0x4dac();
+    return _0x48b5 = function(_0x48b527, _0x3b4c1e) {
+        _0x48b527 = _0x48b527 - 0x1a2;
+        let _0x57bd21 = _0x4dace9[_0x48b527];
+        return _0x57bd21;
+    }, _0x48b5(_0x175de5, _0xe2d06d);
+}</pre>
+            </div>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Content and Context</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Phishing Target</strong>: Detailed knowledge of Steam’s login flow (MFA, QR code) indicates research or experience with gaming platforms.</li>
+                <li><strong>Internationalization</strong>: File 1 supports Russian and Bulgarian translations, suggesting a developer from or targeting Eastern Europe.</li>
+                <li><strong>UI Design</strong>: File 2’s browser-like UI with Western browser styling (e.g., Chrome, Firefox) is generic, not tied to a specific author.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">No Explicit Signatures</h3>
+            <p class="text-gray-700 mt-2">
+                No comments, metadata, or signatures (e.g., “Written by X”) are present, a deliberate choice to avoid attribution.
+            </p>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Indicators of Country or Region of Origin</h2>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">HTTP Headers</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Cloudflare Hosting</strong>: Both files are served via Cloudflare (<code>Server: cloudflare</code>, <code>Cf-Ray: *-LHR</code>), routed through London, UK, but the CDN obscures the true server location.</li>
+                <li><strong>Caddy Proxy</strong>: File 2 uses Caddy (<code>Via: 1.1 Caddy</code>), a global, lightweight web server, not region-specific.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Language and Cultural Clues</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Translations</strong>: File 1 includes Russian (<code>ru</code>) and Bulgarian (<code>bg</code>) translations, pointing to Eastern Europe, particularly Russia or Bulgaria.</li>
+                <li><strong>Generic Placeholders</strong>: File 2 uses <code>url.com</code> and <code>mypath</code>, not tied to a region.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Technical Infrastructure</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Cloudflare CDN</strong>: Used globally, popular among cybercriminals for anonymity, not region-specific.</li>
+                <li><strong>API Endpoints</strong>: Obfuscated endpoints (e.g., <code>/steam/doLogin</code>, <code>/getSiteConfig</code>) prevent IP or domain analysis without further data.</li>
+                <li><strong>Font Files</strong>: File 2 loads <code>Support Assets</code> from <code>/fonts/SupMDL2.woff2</code>, but without access, no metadata is available.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Behavioral Patterns</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Steam Targeting</strong>: Common in Eastern European cybercrime, particularly Russia and Ukraine, due to active markets for gaming credentials.</li>
+                <li><strong>MFA Bypass</strong>: Sophisticated techniques (polling, QR code exploitation) align with organized groups in Eastern Europe.</li>
+                <li><strong>Analytics</strong>: File 2’s <code>/pageVisit</code> and tracking suggest advanced phishing kits, prevalent in Russian-speaking regions.</li>
+            </ul>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Assessment</h2>
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Authorship</h3>
+            <p class="text-gray-700 mt-2">
+                Likely a skilled cybercriminal or group with expertise in JavaScript, React, and phishing. The complexity and obfuscation suggest an organized effort, possibly selling phishing kits or stolen credentials. No direct attribution is possible due to the lack of signatures.
+            </p>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Country of Origin</h3>
+            <p class="text-gray-700 mt-2">
+                Eastern Europe, particularly Russia or Bulgaria, is the most likely origin, based on Russian and Bulgarian translations and alignment with regional cybercrime trends. Global origins (e.g., China, USA) are possible due to generic components and Cloudflare hosting, but less probable.
+            </p>
+
+            <h3 class="text-xl font-semibold text-gray-700 mt-4">Confidence Level</h3>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Authorship</strong>: Low confidence due to obfuscation and no signatures.</li>
+                <li><strong>Country</strong>: Moderate confidence in Eastern Europe, driven by translations and cybercrime patterns.</li>
+            </ul>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Limitations and Challenges</h2>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Obfuscation</strong>: Hides coding style and potential tool signatures.</li>
+                <li><strong>Cloudflare CDN</strong>: Masks server location, limiting IP-based geolocation.</li>
+                <li><strong>Generic Components</strong>: React, i18next, and Steam targeting are global, reducing region-specific clues.</li>
+                <li><strong>No Server Data</strong>: Obfuscated endpoints prevent domain or IP analysis.</li>
+                <li><strong>Font Metadata</strong>: <code>Support Assets</code> font is inaccessible, potentially hiding creator details.</li>
+            </ul>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Recommendations for Further Investigation</h2>
+            <ul class="list-disc list-inside text-gray-700 mt-2 space-y-2">
+                <li><strong>Analyze Endpoints</strong>: Capture traffic to <code>/getSiteConfig</code>, <code>/steam/*</code>, and <code>/pageVisit</code> for IP, domain, or hosting details.</li>
+                <li><strong>Examine Fonts</strong>: Download <code>/fonts/SupMDL2.woff2</code> and check for metadata (e.g., creator, license).</li>
+                <li><strong>Monitor Dark Web</strong>: Search for phishing kits or Steam credential dumps referencing <code>DyNaM1c</code> or similar patterns.</li>
+                <li><strong>Correlate Campaigns</strong>: Compare with known Steam phishing kits (e.g., “Steam Stealer”) in threat intelligence databases.</li>
+                <li><strong>Engage Steam and Cloudflare</strong>: Report to Steam’s security team and request Cloudflare to investigate the hosting account.</li>
+            </ul>
+        </section>
+
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 section-title pb-2">Conclusion</h2>
+            <p class="text-gray-700 mt-4">
+                The JavaScript files suggest a skilled cybercriminal or group, likely from Eastern Europe (Russia or Bulgaria), based on Russian and Bulgarian translations and Eastern European cybercrime trends. The use of Cloudflare, React, and generic components allows for global origins, but linguistic and behavioral clues favor Eastern Europe. No direct authorship evidence exists due to obfuscation. Further investigation into server endpoints, font metadata, and dark web activity is needed to confirm attribution. Immediate action should focus on mitigating the phishing campaign through user education and reporting to Steam and Cloudflare.
+            </p>
+        </section>
+
+        <footer class="bg-white shadow rounded-lg p-6 text-center">
+            <p class="text-gray-600">Generated by Grok 3, built by xAI</p>
+            <p class="text-gray-500 text-sm">For further analysis or inquiries, contact xAI support.</p>
+        </footer>
+    </div>
+</body>
+</html>
